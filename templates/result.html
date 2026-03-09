@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Diet Plan — NutriGen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="result-page">
+
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+
+  <div class="page-wrapper">
+
+    <header class="site-header">
+      <div class="logo">
+        <span class="logo-icon">🌿</span>
+        <span class="logo-text">NutriGen</span>
+      </div>
+      <a href="/" class="back-btn">← Start Over</a>
+    </header>
+
+    <main class="result-container">
+
+      <div class="result-hero">
+        <p class="result-greeting">Here's your personalised plan,</p>
+        <h1 class="result-name">{{ result.name }} 👋</h1>
+        <p class="result-subtitle">Based on your profile, here's everything you need to reach your goal.</p>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card bmi-card">
+          <span class="stat-icon">📊</span>
+          <span class="stat-label">Your BMI</span>
+          <span class="stat-value">{{ result.bmi }}</span>
+          <span class="stat-badge {{ result.bmi_class }}">{{ result.bmi_category }}</span>
+        </div>
+        <div class="stat-card calorie-card">
+          <span class="stat-icon">🔥</span>
+          <span class="stat-label">Daily Calories</span>
+          <span class="stat-value">{{ result.calories }} <small>kcal</small></span>
+          <span class="stat-badge goal-badge">{{ result.goal_label }}</span>
+        </div>
+        <div class="stat-card diet-card">
+          <span class="stat-icon">🥗</span>
+          <span class="stat-label">Diet Type</span>
+          <span class="stat-value diet-type-value">{{ result.diet_type }}</span>
+          <span class="stat-badge pref-badge">{{ result.diet_pref_label }}</span>
+        </div>
+      </div>
+
+      <!-- Meal Plan -->
+      <section class="meal-section">
+        <div class="section-heading">
+          <h2>Your Daily Meal Plan</h2>
+          <p>A balanced plan aligned with your {{ result.calories }} kcal target</p>
+        </div>
+
+        <div class="meals-grid">
+
+          <!-- Breakfast -->
+          <div class="meal-card" style="--meal-color: #f59e0b;">
+            <div class="meal-header">
+              <span class="meal-emoji">🌅</span>
+              <div>
+                <h3>Breakfast</h3>
+                <span class="meal-time">7:00 AM – 9:00 AM</span>
+              </div>
+              <span class="meal-kcal">{{ result.meal_plan.breakfast.calories }} kcal</span>
+            </div>
+            <ul class="meal-items">
+              {% for item in result.meal_plan.breakfast.foods %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Lunch -->
+          <div class="meal-card" style="--meal-color: #10b981;">
+            <div class="meal-header">
+              <span class="meal-emoji">☀️</span>
+              <div>
+                <h3>Lunch</h3>
+                <span class="meal-time">12:30 PM – 2:00 PM</span>
+              </div>
+              <span class="meal-kcal">{{ result.meal_plan.lunch.calories }} kcal</span>
+            </div>
+            <ul class="meal-items">
+              {% for item in result.meal_plan.lunch.foods %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Snack -->
+          <div class="meal-card" style="--meal-color: #8b5cf6;">
+            <div class="meal-header">
+              <span class="meal-emoji">🍎</span>
+              <div>
+                <h3>Snack</h3>
+                <span class="meal-time">4:00 PM – 5:00 PM</span>
+              </div>
+              <span class="meal-kcal">{{ result.meal_plan.snack.calories }} kcal</span>
+            </div>
+            <ul class="meal-items">
+              {% for item in result.meal_plan.snack.foods %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Dinner -->
+          <div class="meal-card" style="--meal-color: #3b82f6;">
+            <div class="meal-header">
+              <span class="meal-emoji">🌙</span>
+              <div>
+                <h3>Dinner</h3>
+                <span class="meal-time">7:30 PM – 9:00 PM</span>
+              </div>
+              <span class="meal-kcal">{{ result.meal_plan.dinner.calories }} kcal</span>
+            </div>
+            <ul class="meal-items">
+              {% for item in result.meal_plan.dinner.foods %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Tips -->
+      <section class="tips-section">
+        <h2>💡 Health Tips for You</h2>
+        <div class="tips-grid">
+          {% for tip in result.tips %}
+          <div class="tip-card">
+            <span class="tip-bullet">✦</span>
+            <p>{{ tip }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <div class="result-cta">
+        <a href="/" class="submit-btn">
+          <span class="btn-text">Generate a New Plan</span>
+          <span class="btn-icon">→</span>
+        </a>
+      </div>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>Made with 💚 for healthier lives · NutriGen 2025</p>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

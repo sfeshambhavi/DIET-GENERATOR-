@@ -1,0 +1,256 @@
+/* ============================================
+   NutriGen — Main Stylesheet
+   ============================================ */
+
+   :root {
+    --green-dark:    #1a3a2a;
+    --green-mid:     #2d6a4f;
+    --green-light:   #52b788;
+    --green-pale:    #d8f3dc;
+    --cream:         #faf7f2;
+    --cream-dark:    #f0ebe1;
+    --amber:         #e9a619;
+    --text-dark:     #1c1c1c;
+    --text-mid:      #4a4a4a;
+    --text-light:    #8a8a8a;
+    --white:         #ffffff;
+    --error:         #e53e3e;
+    --radius-sm:     8px;
+    --radius-md:     16px;
+    --radius-lg:     24px;
+    --radius-xl:     36px;
+    --shadow-sm:     0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md:     0 8px 30px rgba(0,0,0,0.10);
+    --shadow-lg:     0 20px 60px rgba(0,0,0,0.12);
+    --font-display:  'Playfair Display', Georgia, serif;
+    --font-body:     'DM Sans', sans-serif;
+  }
+  
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  
+  body {
+    font-family: var(--font-body);
+    background-color: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+  
+  /* Background Blobs */
+  .bg-blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-1 { width: 500px; height: 500px; background: var(--green-light); top: -100px; right: -100px; animation: blobFloat 8s ease-in-out infinite; }
+  .blob-2 { width: 400px; height: 400px; background: var(--amber); bottom: 100px; left: -120px; animation: blobFloat 10s ease-in-out infinite reverse; }
+  .blob-3 { width: 300px; height: 300px; background: var(--green-mid); top: 50%; left: 50%; animation: blobFloat 12s ease-in-out infinite; }
+  
+  @keyframes blobFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%       { transform: translate(20px, -20px) scale(1.05); }
+  }
+  
+  .page-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+  
+  /* Header */
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { font-size: 1.8rem; }
+  .logo-text { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--green-dark); }
+  .tagline { font-size: 0.85rem; color: var(--text-light); font-style: italic; }
+  .back-btn { font-size: 0.9rem; color: var(--green-mid); text-decoration: none; font-weight: 500; border: 1.5px solid var(--green-light); padding: 8px 18px; border-radius: var(--radius-sm); transition: all 0.2s; }
+  .back-btn:hover { background: var(--green-pale); }
+  
+  /* Form Card */
+  .form-card {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 48px;
+    animation: fadeUp 0.5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .form-header { margin-bottom: 40px; border-bottom: 1px solid var(--cream-dark); padding-bottom: 28px; }
+  .form-header h1 { font-family: var(--font-display); font-size: 2.2rem; color: var(--green-dark); line-height: 1.2; margin-bottom: 10px; }
+  .form-header h1 em { color: var(--green-mid); font-style: italic; }
+  .form-header p { color: var(--text-mid); font-size: 0.95rem; }
+  
+  /* Form Sections */
+  .form-section { margin-bottom: 36px; padding-bottom: 36px; border-bottom: 1px dashed #e0dcd4; }
+  .form-section:last-of-type { border-bottom: none; }
+  .section-label { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-mid); }
+  .section-number { background: var(--green-pale); color: var(--green-mid); font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  
+  /* Input Grid */
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .input-grid.mt-20 { margin-top: 20px; }
+  .full-width { grid-column: 1 / -1; }
+  
+  /* Input Group */
+  .input-group { display: flex; flex-direction: column; gap: 6px; }
+  .input-group label { font-size: 0.88rem; font-weight: 500; color: var(--text-dark); }
+  .unit { font-size: 0.78rem; color: var(--text-light); font-weight: 400; }
+  .input-group input,
+  .input-group select {
+    padding: 12px 16px;
+    border: 1.5px solid #ddd;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: var(--cream);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    appearance: none;
+  }
+  .input-group input:focus,
+  .input-group select:focus {
+    outline: none;
+    border-color: var(--green-light);
+    box-shadow: 0 0 0 3px rgba(82,183,136,0.15);
+    background: var(--white);
+  }
+  .input-group input.invalid,
+  .input-group select.invalid {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(229,62,62,0.1);
+  }
+  .select-wrapper { position: relative; }
+  .select-wrapper::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); pointer-events: none; }
+  .select-wrapper select { padding-right: 36px; }
+  .error-msg { font-size: 0.78rem; color: var(--error); min-height: 18px; display: block; }
+  
+  /* Live BMI Preview */
+  .bmi-preview { margin-top: 24px; background: var(--green-pale); border-radius: var(--radius-md); padding: 20px 24px; border: 1px solid rgba(82,183,136,0.3); }
+  .bmi-preview-inner { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .bmi-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--green-mid); font-weight: 600; }
+  .bmi-value { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--green-dark); }
+  .bmi-category { font-size: 0.85rem; font-weight: 500; padding: 4px 14px; border-radius: 20px; background: var(--white); color: var(--green-mid); border: 1px solid var(--green-light); }
+  .bmi-bar-track { height: 8px; background: rgba(0,0,0,0.1); border-radius: 10px; position: relative; overflow: visible; margin-bottom: 8px; }
+  .bmi-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #60d394, #f4a261, #e63946); width: 100%; }
+  .bmi-bar-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: var(--white); border: 3px solid var(--green-dark); border-radius: 50%; transition: left 0.4s ease; left: 0%; }
+  .bmi-bar-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-light); }
+  
+  /* Activity Cards */
+  .activity-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 6px; }
+  .activity-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; border: 1.5px solid #e0dcd4; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; text-align: center; background: var(--cream); }
+  .activity-card input[type="radio"] { display: none; }
+  .activity-card:hover { border-color: var(--green-light); background: var(--green-pale); }
+  .activity-card:has(input:checked) { border-color: var(--green-mid); background: var(--green-pale); box-shadow: 0 0 0 3px rgba(82,183,136,0.2); }
+  .card-icon { font-size: 1.6rem; }
+  .card-title { font-size: 0.75rem; font-weight: 600; color: var(--text-dark); }
+  .card-desc  { font-size: 0.68rem; color: var(--text-light); }
+  
+  /* Goal Cards */
+  .goal-cards { display: flex; gap: 10px; margin-top: 6px; }
+  .goal-card { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 10px; border: 1.5px solid #e0dcd4; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; text-align: center; background: var(--cream); font-size: 0.8rem; font-weight: 500; }
+  .goal-card input[type="radio"] { display: none; }
+  .goal-card:hover { border-color: var(--amber); background: #fff8ec; }
+  .goal-card:has(input:checked) { border-color: var(--amber); background: #fff8ec; box-shadow: 0 0 0 3px rgba(233,166,25,0.15); }
+  .goal-icon { font-size: 1.4rem; }
+  
+  /* Diet Pref Cards */
+  .pref-cards { display: flex; gap: 10px; margin-top: 6px; }
+  .pref-card { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 10px; border: 1.5px solid #e0dcd4; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; text-align: center; background: var(--cream); font-size: 0.8rem; font-weight: 500; }
+  .pref-card input[type="radio"] { display: none; }
+  .pref-card:hover { border-color: var(--green-light); background: var(--green-pale); }
+  .pref-card:has(input:checked) { border-color: var(--green-mid); background: var(--green-pale); box-shadow: 0 0 0 3px rgba(82,183,136,0.2); }
+  .pref-icon { font-size: 1.4rem; }
+  
+  /* Submit */
+  .form-submit { text-align: center; padding-top: 10px; }
+  .submit-btn { display: inline-flex; align-items: center; gap: 12px; background: var(--green-dark); color: var(--white); padding: 16px 40px; border-radius: var(--radius-lg); border: none; font-family: var(--font-body); font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.25s; }
+  .submit-btn:hover { background: var(--green-mid); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(45,106,79,0.3); }
+  .btn-icon { font-size: 1.1rem; transition: transform 0.2s; }
+  .submit-btn:hover .btn-icon { transform: translateX(4px); }
+  .submit-note { margin-top: 14px; font-size: 0.78rem; color: var(--text-light); }
+  
+  /* ── RESULT PAGE ── */
+  .result-hero { text-align: center; margin-bottom: 40px; animation: fadeUp 0.5s ease both; }
+  .result-greeting { font-size: 1rem; color: var(--text-light); margin-bottom: 8px; }
+  .result-name { font-family: var(--font-display); font-size: 2.8rem; color: var(--green-dark); line-height: 1.2; margin-bottom: 12px; }
+  .result-subtitle { color: var(--text-mid); font-size: 0.95rem; }
+  
+  /* Stats Row */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
+  .stat-card { background: var(--white); border-radius: var(--radius-lg); padding: 24px 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; box-shadow: var(--shadow-md); animation: fadeUp 0.5s ease both; border-top: 4px solid var(--green-light); }
+  .bmi-card     { border-top-color: #3b82f6; }
+  .calorie-card { border-top-color: #f59e0b; }
+  .diet-card    { border-top-color: #10b981; }
+  .stat-icon  { font-size: 1.6rem; }
+  .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 600; }
+  .stat-value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--green-dark); line-height: 1; }
+  .stat-value small { font-size: 0.9rem; font-family: var(--font-body); font-weight: 400; color: var(--text-light); }
+  .diet-type-value { font-size: 1.1rem; font-family: var(--font-body); font-weight: 600; }
+  .stat-badge { font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: var(--green-pale); color: var(--green-mid); }
+  .underweight { background: #dbeafe; color: #1e40af; }
+  .normal      { background: #d1fae5; color: #065f46; }
+  .overweight  { background: #fef3c7; color: #92400e; }
+  .obese       { background: #fee2e2; color: #991b1b; }
+  .goal-badge  { background: #fef3c7; color: #92400e; }
+  .pref-badge  { background: #ede9fe; color: #5b21b6; }
+  
+  /* Meal Section */
+  .meal-section { margin-bottom: 40px; animation: fadeUp 0.5s 0.1s ease both; }
+  .section-heading { margin-bottom: 24px; }
+  .section-heading h2 { font-family: var(--font-display); font-size: 1.8rem; color: var(--green-dark); margin-bottom: 6px; }
+  .section-heading p { color: var(--text-mid); font-size: 0.9rem; }
+  .meals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .meal-card { background: var(--white); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--meal-color); transition: transform 0.2s, box-shadow 0.2s; }
+  .meal-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .meal-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+  .meal-emoji { font-size: 1.8rem; }
+  .meal-header h3 { font-family: var(--font-display); font-size: 1.1rem; color: var(--green-dark); margin-bottom: 2px; }
+  .meal-time { font-size: 0.75rem; color: var(--text-light); }
+  .meal-kcal { margin-left: auto; font-size: 0.8rem; font-weight: 600; background: var(--cream-dark); padding: 4px 12px; border-radius: 20px; color: var(--text-mid); }
+  .meal-items { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .meal-items li { font-size: 0.88rem; color: var(--text-mid); padding-left: 16px; position: relative; }
+  .meal-items li::before { content: '•'; position: absolute; left: 0; color: var(--meal-color); font-weight: bold; }
+  
+  /* Tips */
+  .tips-section { margin-bottom: 40px; animation: fadeUp 0.5s 0.15s ease both; }
+  .tips-section h2 { font-family: var(--font-display); font-size: 1.8rem; color: var(--green-dark); margin-bottom: 20px; }
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tip-card { background: var(--white); border-radius: var(--radius-md); padding: 18px 20px; display: flex; gap: 12px; align-items: flex-start; box-shadow: var(--shadow-sm); }
+  .tip-bullet { color: var(--green-light); font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+  .tip-card p { font-size: 0.88rem; color: var(--text-mid); line-height: 1.5; }
+  .result-cta { text-align: center; margin-top: 40px; }
+  
+  /* Footer */
+  .site-footer { text-align: center; padding: 24px 0; font-size: 0.78rem; color: var(--text-light); border-top: 1px solid rgba(0,0,0,0.06); margin-top: 40px; }
+  
+  /* Responsive */
+  @media (max-width: 640px) {
+    .form-card { padding: 28px 20px; }
+    .input-grid { grid-template-columns: 1fr; }
+    .activity-cards { grid-template-columns: repeat(2, 1fr); }
+    .stats-row { grid-template-columns: 1fr; }
+    .meals-grid { grid-template-columns: 1fr; }
+    .tips-grid  { grid-template-columns: 1fr; }
+    .form-header h1 { font-size: 1.7rem; }
+    .result-name { font-size: 2rem; }
+  }
