@@ -1,5 +1,6 @@
 import pytest
 import time
+import os
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-BASE_URL = "http://localhost:5001"
+BASE_URL = os.environ.get("APP_URL", "http://localhost:5001")
 
 
 # ─────────────────────────────────────────
@@ -20,11 +21,12 @@ BASE_URL = "http://localhost:5001"
 
 @pytest.fixture(scope="module")
 def driver():
-
     options = Options()
     options.add_argument("--headless=new")
-    options.add_argument("--window-size=1280,900")
+    options.add_argument("--no-sandbox")               # ← REQUIRED in CI
+    options.add_argument("--disable-dev-shm-usage")    # ← REQUIRED in CI
     options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1280,900")
 
     service = Service(ChromeDriverManager().install())
 
@@ -40,7 +42,6 @@ def driver():
 # ─────────────────────────────────────────
 
 def fill_form(driver, data):
-
     driver.get(BASE_URL)
     wait = WebDriverWait(driver, 10)
 
@@ -58,21 +59,16 @@ def fill_form(driver, data):
 
 
 def click_submit(driver):
-
     wait = WebDriverWait(driver, 10)
-
-    btn = wait.until(
-        EC.element_to_be_clickable((By.ID, "submitBtn"))
-    )
-
+    btn = wait.until(EC.element_to_be_clickable((By.ID, "submitBtn")))
     driver.execute_script("arguments[0].scrollIntoView(true);", btn)
     driver.execute_script("arguments[0].click();", btn)
 
 
 VALID_FORM = {
-    "inputs": {"name": "Rahul Test", "age": "28", "height": "175", "weight": "72"},
+    "inputs":  {"name": "Rahul Test", "age": "28", "height": "175", "weight": "72"},
     "selects": {"gender": "male"},
-    "radios": {"activity": "moderate", "goal": "weight_loss", "diet_pref": "vegetarian"},
+    "radios":  {"activity": "moderate", "goal": "weight_loss", "diet_pref": "vegetarian"},
 }
 
 
@@ -88,8 +84,8 @@ class TestHomePage:
 
     def test_form_present(self, driver):
         driver.get(BASE_URL)
-        form = WebDriverWait(driver,10).until(
-            EC.presence_of_element_located((By.ID,"dietForm"))
+        form = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "dietForm"))
         )
         assert form
 
@@ -105,11 +101,9 @@ class TestHomePage:
 
     def test_submit_button_present(self, driver):
         driver.get(BASE_URL)
-
-        btn = WebDriverWait(driver,10).until(
-            EC.presence_of_element_located((By.ID,"submitBtn"))
+        btn = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "submitBtn"))
         )
-
         assert btn is not None
 
 
@@ -120,33 +114,24 @@ class TestHomePage:
 class TestBMIPreview:
 
     def test_bmi_updates_on_input(self, driver):
-
         driver.get(BASE_URL)
-
-        driver.find_element(By.ID,"height").send_keys("175")
-        driver.find_element(By.ID,"weight").send_keys("70")
-
-        WebDriverWait(driver,5).until(
-            lambda d: d.find_element(By.ID,"bmiValue").text.strip() != ""
+        driver.find_element(By.ID, "height").send_keys("175")
+        driver.find_element(By.ID, "weight").send_keys("70")
+        WebDriverWait(driver, 5).until(
+            lambda d: d.find_element(By.ID, "bmiValue").text.strip() != ""
         )
-
-        bmi_val = driver.find_element(By.ID,"bmiValue").text
+        bmi_val = driver.find_element(By.ID, "bmiValue").text
         assert float(bmi_val) > 0
 
     def test_bmi_category_shows(self, driver):
-
         driver.get(BASE_URL)
-
-        driver.find_element(By.ID,"height").send_keys("175")
-        driver.find_element(By.ID,"weight").send_keys("70")
-
-        WebDriverWait(driver,5).until(
-            lambda d: d.find_element(By.ID,"bmiCategory").text.strip() != ""
+        driver.find_element(By.ID, "height").send_keys("175")
+        driver.find_element(By.ID, "weight").send_keys("70")
+        WebDriverWait(driver, 5).until(
+            lambda d: d.find_element(By.ID, "bmiCategory").text.strip() != ""
         )
-
-        cat = driver.find_element(By.ID,"bmiCategory").text
-
-        assert cat in ["Underweight","Normal weight","Overweight","Obese"]
+        cat = driver.find_element(By.ID, "bmiCategory").text
+        assert cat in ["Underweight", "Normal weight", "Overweight", "Obese"]
 
 
 # ─────────────────────────────────────────
@@ -156,17 +141,11 @@ class TestBMIPreview:
 class TestFormValidation:
 
     def test_empty_form_shows_errors(self, driver):
-
         driver.get(BASE_URL)
-
         click_submit(driver)
-
         time.sleep(0.5)
-
-        errors = driver.find_elements(By.CSS_SELECTOR,".error-msg")
-
+        errors = driver.find_elements(By.CSS_SELECTOR, ".error-msg")
         visible = [e for e in errors if e.text.strip() != ""]
-
         assert len(visible) > 0
 
 
@@ -177,66 +156,41 @@ class TestFormValidation:
 class TestFormSubmission:
 
     def test_valid_submission_reaches_result_page(self, driver):
-
         fill_form(driver, VALID_FORM)
-
         click_submit(driver)
-
-        WebDriverWait(driver,10).until(
-            EC.url_contains("generate")
-        )
-
+        WebDriverWait(driver, 10).until(EC.url_contains("generate"))
         assert "meal" in driver.page_source.lower()
 
     def test_result_shows_user_name(self, driver):
-
         fill_form(driver, VALID_FORM)
-
         click_submit(driver)
-
-        name_el = WebDriverWait(driver,10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR,".result-name"))
+        name_el = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, ".result-name"))
         )
-
         assert "Rahul Test" in name_el.text
 
     def test_result_shows_bmi_card(self, driver):
-
         fill_form(driver, VALID_FORM)
-
         click_submit(driver)
-
-        card = WebDriverWait(driver,10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR,".bmi-card"))
+        card = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, ".bmi-card"))
         )
-
         assert card
 
     def test_result_shows_meal_plan(self, driver):
-
         fill_form(driver, VALID_FORM)
-
         click_submit(driver)
-
-        WebDriverWait(driver,10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR,".meal-card"))
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".meal-card"))
         )
-
-        meals = driver.find_elements(By.CSS_SELECTOR,".meal-card")
-
+        meals = driver.find_elements(By.CSS_SELECTOR, ".meal-card")
         assert len(meals) >= 1
 
-
     def test_result_shows_tips(self, driver):
-
         fill_form(driver, VALID_FORM)
-
         click_submit(driver)
-
-        WebDriverWait(driver,10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR,".tip-card"))
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".tip-card"))
         )
-
-        tips = driver.find_elements(By.CSS_SELECTOR,".tip-card")
-
+        tips = driver.find_elements(By.CSS_SELECTOR, ".tip-card")
         assert len(tips) >= 1

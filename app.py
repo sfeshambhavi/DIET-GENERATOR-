@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
 from dotenv import load_dotenv
+import certifi
+import ssl
 import os
 
 load_dotenv()
@@ -13,9 +15,6 @@ MONGO_URI = os.getenv("MONGO_URI")
 
 def get_db():
     """Try multiple connection strategies until one works."""
-    import certifi
-    import ssl
-
     strategies = [
         # Strategy 1: certifi CA bundle
         {"tlsCAFile": certifi.where()},
@@ -39,8 +38,10 @@ def get_db():
 
     raise RuntimeError("All MongoDB connection strategies failed.")
 
-db = get_db()
+db = get_db()   # ← CRITICAL: was missing before
 
+
+# ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route('/api/ping')
 def ping():

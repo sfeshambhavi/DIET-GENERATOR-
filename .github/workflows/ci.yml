@@ -18,8 +18,8 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
       - run: pytest test_app.py -v --tb=short
-        env:
-          MONGO_URI: ${{ secrets.MONGO_URI }}
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
 
   docker-build:
     name: Build & Push Docker Image
@@ -44,31 +44,38 @@ jobs:
     needs: docker-build
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: pip install webdriver-manager
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Install Chrome
         run: |
           wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+
       - name: Start Flask app
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
-          nohup python app.py > app.log 2>&1 &
+          nohup python3 app.py > app.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -s http://localhost:5001/api/ping | grep -q "connected"; then
-              echo "App ready!"; break
+              echo "App is ready!"; break
             fi
+            echo "Waiting for app... attempt $i"
             sleep 3
           done
+
       - name: Run Selenium tests
         env:
           APP_URL: http://localhost:5001
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: pytest test_selenium.py -v --tb=short
+
       - name: Show logs on failure
         if: failure()
         run: cat app.log
