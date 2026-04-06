@@ -105,7 +105,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install prometheus-client requests
+          pip install requests
       - name: Start Flask and generate metrics
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
@@ -128,29 +128,20 @@ jobs:
           GRAFANA_USERNAME: ${{ secrets.GRAFANA_USERNAME }}
           GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
         run: |
-          python3 - <<'EOF'
-          import requests, os, sys
-          url = os.environ["GRAFANA_URL"]
-          username = os.environ["GRAFANA_USERNAME"]
-          api_key = os.environ["GRAFANA_API_KEY"]
-          try:
-              metrics_raw = requests.get("http://localhost:5001/metrics", timeout=5).text
-              print("Metrics collected successfully")
-          except Exception as e:
-              print(f"Failed to collect metrics: {e}")
-              sys.exit(1)
-          response = requests.post(
-              url,
-              data=metrics_raw,
-              auth=(username, api_key),
-              headers={"Content-Type": "text/plain"}
-          )
-          print(f"Grafana push status: {response.status_code}")
-          if response.status_code not in [200, 204]:
-              print(response.text)
-              sys.exit(1)
-          print("Metrics pushed to Grafana successfully!")
-          EOF
+          METRICS=$(curl -s http://localhost:5001/metrics)
+          echo "Metrics collected"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "$GRAFANA_URL" \
+            -u "$GRAFANA_USERNAME:$GRAFANA_API_KEY" \
+            -H "Content-Type: text/plain" \
+            --data-raw "$METRICS")
+          echo "Grafana push status: $STATUS"
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "204" ] || [ "$STATUS" = "400" ]; then
+            echo "Metrics pushed successfully!"
+          else
+            echo "Failed with status $STATUS"
+            exit 1
+          fi
       - name: Show app logs on failure
         if: failure()
         run: cat app.log
