@@ -9,6 +9,8 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
+from prometheus_flask_exporter import PrometheusMetrics
+metrics = PrometheusMetrics(app)
 
 # ── MongoDB connection ────────────────────────────────────────────────────────
 MONGO_URI = os.getenv("MONGO_URI")

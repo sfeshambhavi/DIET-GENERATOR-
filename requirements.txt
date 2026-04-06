@@ -7,3 +7,4 @@ selenium==4.21.0
 pytest==8.2.2
 webdriver-manager
 webdriver-manager
+prometheus-flask-exporter
