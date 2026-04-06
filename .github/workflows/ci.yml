@@ -12,74 +12,145 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: pytest test_app.py -v --tb=short
-    env:
-      MONGO_URI: ${{ secrets.MONGO_URI }}
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: pytest test_app.py -v --tb=short
 
   docker-build:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - uses: docker/build-push-action@v5
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/nutrigen:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/nutrigen:latest
+            ${{ secrets.DOCKER_USERNAME }}/nutrigen:${{ github.sha }}
 
   selenium-tests:
     name: Selenium Tests
     runs-on: ubuntu-latest
     needs: docker-build
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install webdriver-manager selenium
-
+        run: pip install -r requirements.txt
       - name: Install Chrome
         run: |
           wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
-
-      - name: Start Flask app
+      - name: Install webdriver-manager
+        run: pip install webdriver-manager
+      - name: Start Flask app in background
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
           nohup python3 app.py > app.log 2>&1 &
-          echo "Waiting for app to start..."
+          echo "Waiting for app to be ready..."
           for i in $(seq 1 40); do
             if curl -s http://localhost:5001/ | grep -q "NutriGen"; then
-              echo "App is ready!"; break
+              echo "App is ready!"
+              break
             fi
-            echo "Attempt $i..."
+            echo "Attempt $i - waiting..."
             sleep 5
           done
-          curl -s http://localhost:5001/ || (cat app.log && exit 1)
-
       - name: Run Selenium tests
         env:
           APP_URL: http://localhost:5001
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: pytest test_selenium.py -v --tb=short
+      - name: Show app logs on failure
+        if: failure()
+        run: cat app.log
 
-      - name: Show logs on failure
+  push-metrics:
+    name: Push Metrics to Grafana
+    runs-on: ubuntu-latest
+    needs: selenium-tests
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install prometheus-client requests
+      - name: Start Flask and generate metrics
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: |
+          nohup python3 app.py > app.log 2>&1 &
+          echo "Waiting for app..."
+          for i in $(seq 1 40); do
+            if curl -s http://localhost:5001/ | grep -q "NutriGen"; then
+              echo "App is ready!"
+              break
+            fi
+            echo "Attempt $i - waiting..."
+            sleep 5
+          done
+          curl -s http://localhost:5001/ > /dev/null || true
+          curl -s http://localhost:5001/api/ping > /dev/null || true
+      - name: Push metrics to Grafana Cloud
+        env:
+          GRAFANA_URL: ${{ secrets.GRAFANA_URL }}
+          GRAFANA_USERNAME: ${{ secrets.GRAFANA_USERNAME }}
+          GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
+        run: |
+          python3 - <<'EOF'
+          import requests, os, sys
+          url = os.environ["GRAFANA_URL"]
+          username = os.environ["GRAFANA_USERNAME"]
+          api_key = os.environ["GRAFANA_API_KEY"]
+          try:
+              metrics_raw = requests.get("http://localhost:5001/metrics", timeout=5).text
+              print("Metrics collected successfully")
+          except Exception as e:
+              print(f"Failed to collect metrics: {e}")
+              sys.exit(1)
+          response = requests.post(
+              url,
+              data=metrics_raw,
+              auth=(username, api_key),
+              headers={"Content-Type": "text/plain"}
+          )
+          print(f"Grafana push status: {response.status_code}")
+          if response.status_code not in [200, 204]:
+              print(response.text)
+              sys.exit(1)
+          print("Metrics pushed to Grafana successfully!")
+          EOF
+      - name: Show app logs on failure
         if: failure()
         run: cat app.log
