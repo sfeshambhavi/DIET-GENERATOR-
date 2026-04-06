@@ -105,7 +105,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install requests snappy
+          pip install requests python-snappy
       - name: Start Flask and generate metrics
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
@@ -129,59 +129,46 @@ jobs:
           GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
         run: |
           python3 - <<'EOF'
-          import os, time, requests, struct, snappy
+          import os, time, requests, struct
+          import snappy
 
           url = os.environ["GRAFANA_URL"]
           username = os.environ["GRAFANA_USERNAME"]
           api_key = os.environ["GRAFANA_API_KEY"]
 
-          def create_proto_metric(name, value, timestamp_ms, labels={}):
-              # Simple protobuf encoding for a single timeseries
-              def encode_string(field, s):
-                  b = s.encode()
-                  return bytes([field << 3 | 2]) + encode_varint(len(b)) + b
+          def encode_varint(n):
+              result = []
+              while n > 127:
+                  result.append((n & 0x7F) | 0x80)
+                  n >>= 7
+              result.append(n)
+              return bytes(result)
 
-              def encode_varint(n):
-                  result = []
-                  while n > 127:
-                      result.append((n & 0x7F) | 0x80)
-                      n >>= 7
-                  result.append(n)
-                  return bytes(result)
+          def encode_string(field, s):
+              b = s.encode()
+              return bytes([field << 3 | 2]) + encode_varint(len(b)) + b
 
-              def encode_double(field, d):
-                  import struct
-                  return bytes([field << 3 | 1]) + struct.pack('<d', d)
+          def encode_double(field, d):
+              return bytes([field << 3 | 1]) + struct.pack('<d', d)
 
-              def encode_int64(field, n):
-                  return bytes([field << 3 | 0]) + encode_varint(n)
+          def encode_int64(field, n):
+              return bytes([field << 3 | 0]) + encode_varint(n)
 
-              # Build label pairs
+          def make_timeseries(name, value, timestamp_ms):
               all_labels = {"__name__": name, "job": "nutrigen", "env": "ci"}
-              all_labels.update(labels)
-
               label_bytes = b""
               for k, v in all_labels.items():
                   lp = encode_string(1, k) + encode_string(2, v)
                   label_bytes += bytes([1 << 3 | 2]) + encode_varint(len(lp)) + lp
-
-              # Build sample
               sample = encode_double(1, float(value)) + encode_int64(2, timestamp_ms)
               sample_bytes = bytes([2 << 3 | 2]) + encode_varint(len(sample)) + sample
-
               ts = label_bytes + sample_bytes
               return bytes([1 << 3 | 2]) + encode_varint(len(ts)) + ts
 
           now_ms = int(time.time() * 1000)
-          metrics = [
-              ("nutrigen_ci_build_total", 1),
-              ("nutrigen_ci_success", 1),
-              ("nutrigen_app_up", 1),
-          ]
-
           proto = b""
-          for name, val in metrics:
-              proto += create_proto_metric(name, val, now_ms)
+          for name, val in [("nutrigen_ci_build_total", 1), ("nutrigen_ci_success", 1), ("nutrigen_app_up", 1)]:
+              proto += make_timeseries(name, val, now_ms)
 
           compressed = snappy.compress(proto)
 
@@ -199,7 +186,7 @@ jobs:
           print(response.text)
           if response.status_code not in [200, 204]:
               exit(1)
-          print("Done!")
+          print("Metrics pushed successfully!")
           EOF
       - name: Show app logs on failure
         if: failure()
